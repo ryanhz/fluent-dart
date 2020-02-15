@@ -4,10 +4,7 @@ import 'package:fluent/fluent.dart';
 
 void main() {
   test('adds one to input values', () {
-    final calculator = Calculator();
-    expect(calculator.addOne(2), 3);
-    expect(calculator.addOne(-7), -6);
-    expect(calculator.addOne(0), 1);
-    expect(() => calculator.addOne(null), throwsNoSuchMethodError);
+    expect(2+4, 6);
+    expect(() => 2/0, throwsException);
   });
 }
