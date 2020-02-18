@@ -5,7 +5,7 @@ author: Ryan Hu
 homepage: https://github.com/ryanhz/fluent-dart
 
 environment:
-  sdk: ">=2.3.0 <3.0.0"
+  sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
   petitparser: ^2.4.0

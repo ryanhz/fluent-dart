@@ -1,204 +1,150 @@
-
-class FtlString implements FtlJunk, FtlIdentifier, FtlStringLiteral, FtlText, FtlCommentLine, FtlBlankBlock {
-  final String content;
-
-  FtlString._(this.content) : assert(content != null);
-
-  static FtlString fromString(String content) {
-    assert(content != null);
-    return FtlString._(content);
-  }
+class Resource extends ASTNode {
+	final List<Entry> body;
+	Resource(Span span, this.body): super(span);
 }
 
-class FtlText implements _FtlPatternElementCandidate {}
-class FtlJunk implements FtlResourceCandidate {}
-class FtlBlankBlock implements FtlResourceCandidate {}
-class FtlCommentLine {}
-
-class FtlIdentifier implements _FtlVariantKeyCandidate {}
-
-class FtlStringLiteral implements _FtlInlineExpressionCandidate {}
-
-class FtlNumberLiteral extends FtlString implements _FtlInlineExpressionCandidate, _FtlVariantKeyCandidate {
-  final num value;
-
-  FtlNumberLiteral(String content)
-      : this.value = num.parse(content),
-        super._(content);
+abstract class Entry extends ASTNode {
+	Entry(Span span) : super(span);
 }
 
-class FtlAttribute {
-  final FtlIdentifier identifier;
-  final FtlPattern pattern;
-
-  FtlAttribute({this.identifier, this.pattern});
+class Comment extends Entry {
+	final String content;
+	Comment(Span span, this.content) : super(span);
 }
 
-class FtlAttributeAccessor {
-  final FtlIdentifier identifier;
-
-  FtlAttributeAccessor({this.identifier});
+class GroupComment extends Comment {
+	GroupComment(Span span, String content): super(span, content);
 }
 
-class FtlNamedArgument implements _FtlArgumentCandidate {
-  final FtlIdentifier identifier;
-
-  // Either FtlNumberLiteral or FtlStringLiteral.
-  final dynamic literal;
-
-  FtlNamedArgument(this.identifier, this.literal)
-      : assert(identifier != null),
-        assert(literal is FtlNumberLiteral || literal is FtlStringLiteral);
+class ResourceComment extends Comment {
+	ResourceComment(Span span, String content): super(span, content);
 }
 
-class _FtlArgumentCandidate {}
-
-class FtlArgument {
-  final _FtlArgumentCandidate argument;
-
-  FtlArgument({this.argument});
+class Junk extends Entry {
+	final String content;
+	Junk(Span span, this.content) : super(span);
 }
 
-class _FtlVariantKeyCandidate {}
-class FtlVariantKey {
-  final _FtlVariantKeyCandidate key;
-
-  FtlVariantKey({this.key});
+class Message extends Entry {
+	final Identifier id;
+	final Pattern value;
+	final List<Attribute> attributes;
+	final Comment comment;
+	Message(Span span, this.id, this.value, [this.attributes=const [], this.comment=null]): super(span);
 }
 
-class FtlVariant {
-  final FtlVariantKey variantKey;
-  final FtlPattern pattern;
-
-  FtlVariant({this.variantKey, this.pattern});
+class Term extends Entry {
+	final Identifier id;
+	final Pattern value;
+	final List<Attribute> attributes;
+	final Comment comment;
+	Term(Span span, this.id, this.value, [this.attributes=const [], this.comment=null]): super(span);
 }
 
-class FtlDefaultVariant {
-  final FtlVariantKey variantKey;
-  final FtlPattern pattern;
-
-  FtlDefaultVariant({this.variantKey, this.pattern});
+class Identifier extends ASTNode {
+	final String name;
+	Identifier(Span span, this.name): super(span);
 }
 
-
-class FtlVariantList {
-  final FtlDefaultVariant defaultVariant;
-  final List<FtlVariant> variants;
-
-  FtlVariantList({this.defaultVariant, this.variants});
+class Pattern extends ASTNode {
+	final List<PatternElement> elements;
+	Pattern(Span span, this.elements): super(span);
 }
 
-class _FtlInlinePlaceableCandidate {}
-
-class FtlInlinePlaceable implements _FtlPatternElementCandidate, _FtlInlineExpressionCandidate {
-  final _FtlInlinePlaceableCandidate placeable;
-
-  FtlInlinePlaceable({this.placeable});
+class Attribute extends ASTNode {
+	final Identifier id;
+	final Pattern value;
+	Attribute(Span span, this.id, this.value): super(span);
 }
 
-class FtlBlockPlaceable implements _FtlInlinePlaceableCandidate {}
-
-class _FtlInlineExpressionCandidate {}
-
-class FtlInlineExpression implements _FtlInlinePlaceableCandidate, _FtlArgumentCandidate {
-  final _FtlInlineExpressionCandidate expression;
-
-  FtlInlineExpression({this.expression});
+abstract class PatternElement extends ASTNode {
+	PatternElement(Span span): super(span);
 }
 
-class _FtlPatternElementCandidate {}
-
-class FtlPatternElement {
-  final _FtlPatternElementCandidate element;
-
-  FtlPatternElement({this.element});
+class TextElement extends PatternElement {
+	final String value;
+	TextElement(Span span, this.value): super(span);
 }
 
-class FtlPattern {
-  final List<FtlPatternElement> patternElements;
-
-  FtlPattern({this.patternElements});
+class Placeable extends PatternElement {
+	final Expression expression;
+	Placeable(Span span, this.expression): super(span);
 }
 
-class FtlSelectExpression implements _FtlInlinePlaceableCandidate {
-  FtlInlineExpression inlineExpression;
-  FtlVariantList variantList;
-
-  FtlSelectExpression({FtlInlineExpression this.inlineExpression, FtlVariantList this.variantList});
+abstract class Expression extends ASTNode {
+	Expression(Span span): super(span);
 }
 
-class FtlArgumentList {
-  final List<FtlArgument> arguments;
-
-  FtlArgumentList({this.arguments});
+class VariableReference extends Expression {
+	final Identifier id;
+	VariableReference(Span span, this.id): super(span);
 }
 
-class FtlCallArguments {
-  final FtlArgumentList arguments;
-
-  FtlCallArguments({this.arguments});
+class TermReference extends Expression {
+	final Identifier id;
+	final Attribute attribute;
+	final CallArguments arguments;
+	TermReference(Span span, this.id, this.attribute, this.arguments): super(span);
 }
 
-class FtlTermReference implements _FtlInlineExpressionCandidate {
-  final FtlIdentifier identifier;
-  final FtlAttributeAccessor attributeAccessor;
-  final FtlCallArguments callArguments;
-
-  FtlTermReference({this.identifier, this.attributeAccessor, this.callArguments});
+class MessageReference extends Expression {
+	final Identifier id;
+	final Attribute attribute;
+	MessageReference(Span span, this.id, this.attribute): super(span);
 }
 
-class FtlMessageReference implements _FtlInlineExpressionCandidate {
-  final FtlIdentifier identifier;
-  final FtlAttributeAccessor attributeAccessor;
-
-  FtlMessageReference({this.identifier, this.attributeAccessor});
+abstract class Literal extends Expression {
+	Literal(Span span): super(span);
 }
 
-class FtlFunctionReference implements _FtlInlineExpressionCandidate {
-  final FtlIdentifier identifier;
-  final FtlCallArguments callArguments;
-
-  FtlFunctionReference({this.identifier, this.callArguments});
+class StringLiteral extends Literal {
+	final String value;
+	StringLiteral(Span span, this.value): super(span);
 }
 
-class FtlVariableReference implements _FtlInlineExpressionCandidate {
-  final FtlIdentifier identifier;
-
-  FtlVariableReference({this.identifier});
+class NumberLiteral extends Literal {
+	final String value;
+	NumberLiteral(Span span, this.value): super(span);
 }
 
-class FtlTerm {
-  final FtlIdentifier identifier;
-  final FtlPattern pattern;
-  final List<FtlAttribute> attributes;
-
-  FtlTerm({this.identifier, this.pattern, this.attributes});
+class FunctionReference extends Expression {
+	final Identifier id;
+	final CallArguments arguments;
+	FunctionReference(Span span, this.id, this.arguments): super(span);
 }
 
-class FtlMessage {
-  final FtlIdentifier identifier;
-  final FtlPattern pattern;
-  final List<FtlAttribute> attributes;
-
-  FtlMessage({this.identifier, this.pattern, this.attributes});
+class CallArguments extends ASTNode {
+	final List<VariableReference> positional;
+	final List<NamedArgument> named;
+	CallArguments(Span span, [this.positional = const [], this.named = const []]): super(span);
 }
 
-class FtlEntry implements FtlResourceCandidate {
-  final FtlMessage message;
-  final FtlTerm term;
-  final FtlCommentLine commentLine;
-
-  FtlEntry({this.message, this.term, this.commentLine});
-
-  factory FtlEntry.forMessage(FtlMessage message) => FtlEntry(message: message);
-  factory FtlEntry.forTerm(FtlTerm term) => FtlEntry(term: term);
-  factory FtlEntry.forCommentLine(FtlCommentLine commentLine) => FtlEntry(commentLine: commentLine);
+class NamedArgument extends ASTNode {
+	final Identifier name;
+	final Literal value;
+	NamedArgument(Span span, this.name, this.value): super(span);
 }
 
-class FtlResourceCandidate {}
+class SelectExpression extends Expression {
+	final Expression selector;
+	final List<Variant> variants;
+	SelectExpression(Span span, this.selector, this.variants): super(span);
+}
 
-class FtlResource {
-  final List<FtlResourceCandidate> resourceParts;
+class Variant extends ASTNode {
+	final Literal key;
+	final Pattern value;
+	final bool isDefault;
+	Variant(Span span, this.key, this.value, this.isDefault): super(span);
+}
 
-  FtlResource({this.resourceParts});
+abstract class ASTNode {
+	final Span span;
+	ASTNode(this.span);
+}
+
+class Span {
+	final int start;
+	final int end;
+	Span(this.start, this.end);
 }

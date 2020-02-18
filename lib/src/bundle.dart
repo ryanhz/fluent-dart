@@ -3,9 +3,9 @@ library fluent;
 
 class FluentBundle {
 
-    final List<String> locales;
+    final String locale;
 
-    FluentBundle(this.locales);
+    FluentBundle(this.locale);
 
     void addMessages(String messages) {
 
