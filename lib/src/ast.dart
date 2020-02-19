@@ -1,150 +1,130 @@
 class Resource extends ASTNode {
-	final List<Entry> body;
-	Resource(Span span, this.body): super(span);
+	final List<Entry> body = [];
+	Resource();
 }
 
-abstract class Entry extends ASTNode {
-	Entry(Span span) : super(span);
-}
+abstract class Entry extends ASTNode {}
 
 class Comment extends Entry {
 	final String content;
-	Comment(Span span, this.content) : super(span);
+	Comment(this.content);
 }
 
 class GroupComment extends Comment {
-	GroupComment(Span span, String content): super(span, content);
+	GroupComment(String content): super(content);
 }
 
 class ResourceComment extends Comment {
-	ResourceComment(Span span, String content): super(span, content);
+	ResourceComment(String content): super(content);
 }
 
 class Junk extends Entry {
 	final String content;
-	Junk(Span span, this.content) : super(span);
+	Junk(this.content);
 }
 
 class Message extends Entry {
-	final Identifier id;
+	final String id;
 	final Pattern value;
-	final List<Attribute> attributes;
-	final Comment comment;
-	Message(Span span, this.id, this.value, [this.attributes=const [], this.comment=null]): super(span);
+	final Map<String, Pattern> attributes;
+	Message(this.id, this.value, [this.attributes=const {}]);
 }
 
 class Term extends Entry {
-	final Identifier id;
+	final String id;
 	final Pattern value;
-	final List<Attribute> attributes;
-	final Comment comment;
-	Term(Span span, this.id, this.value, [this.attributes=const [], this.comment=null]): super(span);
-}
-
-class Identifier extends ASTNode {
-	final String name;
-	Identifier(Span span, this.name): super(span);
+	final Map<String, Pattern> attributes;
+	Term(this.id, this.value, [this.attributes=const {}]);
 }
 
 class Pattern extends ASTNode {
-	final List<PatternElement> elements;
-	Pattern(Span span, this.elements): super(span);
-}
-
-class Attribute extends ASTNode {
-	final Identifier id;
-	final Pattern value;
-	Attribute(Span span, this.id, this.value): super(span);
+	List<PatternElement> elements = [];
+	Pattern();
+	Pattern.from(this.elements);
 }
 
 abstract class PatternElement extends ASTNode {
-	PatternElement(Span span): super(span);
+	PatternElement();
+}
+
+class Indent extends PatternElement{
+	String value;
+	int length;
+	Indent(this.value, this.length);
 }
 
 class TextElement extends PatternElement {
-	final String value;
-	TextElement(Span span, this.value): super(span);
+	String value;
+	TextElement(this.value);
 }
 
-class Placeable extends PatternElement {
-	final Expression expression;
-	Placeable(Span span, this.expression): super(span);
-}
-
-abstract class Expression extends ASTNode {
-	Expression(Span span): super(span);
+class Expression extends PatternElement {
 }
 
 class VariableReference extends Expression {
-	final Identifier id;
-	VariableReference(Span span, this.id): super(span);
+	final String id;
+	VariableReference(this.id);
 }
 
 class TermReference extends Expression {
-	final Identifier id;
-	final Attribute attribute;
-	final CallArguments arguments;
-	TermReference(Span span, this.id, this.attribute, this.arguments): super(span);
+	final String id;
+	final String attribute;
+	final List<Argument> arguments;
+	TermReference(this.id, this.attribute, [this.arguments = const []]);
 }
 
 class MessageReference extends Expression {
-	final Identifier id;
-	final Attribute attribute;
-	MessageReference(Span span, this.id, this.attribute): super(span);
+	final String id;
+	final String attribute;
+	MessageReference(this.id, this.attribute);
 }
 
 abstract class Literal extends Expression {
-	Literal(Span span): super(span);
+	Literal();
 }
 
 class StringLiteral extends Literal {
 	final String value;
-	StringLiteral(Span span, this.value): super(span);
+	StringLiteral(this.value);
 }
 
 class NumberLiteral extends Literal {
-	final String value;
-	NumberLiteral(Span span, this.value): super(span);
+	final double value;
+	final int precision;
+	NumberLiteral(this.value, this.precision);
 }
 
 class FunctionReference extends Expression {
-	final Identifier id;
-	final CallArguments arguments;
-	FunctionReference(Span span, this.id, this.arguments): super(span);
+	final String id;
+	final List<Argument> arguments;
+	FunctionReference(this.id, [this.arguments = const []]);
 }
 
-class CallArguments extends ASTNode {
-	final List<VariableReference> positional;
-	final List<NamedArgument> named;
-	CallArguments(Span span, [this.positional = const [], this.named = const []]): super(span);
+abstract class Argument extends ASTNode {
 }
 
-class NamedArgument extends ASTNode {
-	final Identifier name;
+class PositionalArgument extends Argument {
+	final Expression expression;
+	PositionalArgument(this.expression);
+}
+
+class NamedArgument extends Argument {
+	final String name;
 	final Literal value;
-	NamedArgument(Span span, this.name, this.value): super(span);
+	NamedArgument(this.name, this.value);
 }
 
 class SelectExpression extends Expression {
 	final Expression selector;
 	final List<Variant> variants;
-	SelectExpression(Span span, this.selector, this.variants): super(span);
+	SelectExpression(this.selector, this.variants);
 }
 
 class Variant extends ASTNode {
 	final Literal key;
 	final Pattern value;
 	final bool isDefault;
-	Variant(Span span, this.key, this.value, this.isDefault): super(span);
+	Variant(this.key, this.value, this.isDefault);
 }
 
-abstract class ASTNode {
-	final Span span;
-	ASTNode(this.span);
-}
-
-class Span {
-	final int start;
-	final int end;
-	Span(this.start, this.end);
-}
+abstract class ASTNode {}

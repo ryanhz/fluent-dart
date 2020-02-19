@@ -1,4 +1,4 @@
-# fluent
+# Fluent
 
 This is a Dart implementation of Project Fluent, a localization framework designed to unleash the entire expressive power of natural language translations.
 
