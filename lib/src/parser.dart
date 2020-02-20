@@ -3,23 +3,23 @@ import 'dart:math';
 
 import 'package:fluent/src/error.dart';
 
-import './ast.dart';
+import 'ast.dart';
 
 
 class FluentParser {
 
 	// This regex is used to iterate through the beginnings of messages and terms.
 	// With the multiLine flag, the ^ matches at the beginning of every line.
-	final RE_MESSAGE_START = RegExp(r"^(-?[a-zA-Z][\w-]*) *= *", caseSensitive: false, multiLine: true, dotAll: true);
+	final RE_MESSAGE_START = RegExp(r"^(-?[a-zA-Z][\w-]*) *= *", multiLine: true, dotAll: true);
 	// Both Attributes and Variants are parsed in while loops. These regexes are
 	// used to break out of them.
-	final RE_ATTRIBUTE_START = RegExp(r"\.([a-zA-Z][\w-]*) *= *", caseSensitive: true, multiLine: false,);
-	final RE_VARIANT_START = RegExp(r"\*?\[", caseSensitive: true, multiLine: false,);
+	final RE_ATTRIBUTE_START = RegExp(r"\.([a-zA-Z][\w-]*) *= *", );
+	final RE_VARIANT_START = RegExp(r"\*?\[", );
 
-	final RE_NUMBER_LITERAL = RegExp(r"(-?[0-9]+(?:\.([0-9]+))?)", caseSensitive: true, multiLine: false,);
-	final RE_IDENTIFIER = RegExp(r"([a-zA-Z][\w-]*)", caseSensitive: true, multiLine: false,);
-	final RE_REFERENCE = RegExp(r"([$-])?([a-zA-Z][\w-]*)(?:\.([a-zA-Z][\w-]*))?", caseSensitive: true, multiLine: false,);
-	final RE_FUNCTION_NAME = RegExp(r"^[A-Z][A-Z0-9_-]*$", caseSensitive: true, multiLine: false,);
+	final RE_NUMBER_LITERAL = RegExp(r"(-?[0-9]+(?:\.([0-9]+))?)", );
+	final RE_IDENTIFIER = RegExp(r"([a-zA-Z][\w-]*)", );
+	final RE_REFERENCE = RegExp(r"([$-])?([a-zA-Z][\w-]*)(?:\.([a-zA-Z][\w-]*))?", );
+	final RE_FUNCTION_NAME = RegExp(r"^[A-Z][A-Z0-9_-]*$", );
 
 	// A "run" is a sequence of text or string literal characters which don't
 	// require any special handling. For TextElements such special characters are: {
@@ -27,32 +27,32 @@ class FluentParser {
 	// if the next line is indented. For StringLiterals they are: \ (starts an
 	// escape sequence), " (ends the literal), and line breaks which are not allowed
 	// in StringLiterals. Note that string runs may be empty; text runs may not.
-	final RE_TEXT_RUN = RegExp(r"([^{}\n\r]+)", caseSensitive: false, multiLine: true,);
-	final RE_STRING_RUN = RegExp(r'([^\\"\n\r]*)', caseSensitive: false, multiLine: true,);
+	final RE_TEXT_RUN = RegExp(r"([^{}\n\r]+)", );
+	final RE_STRING_RUN = RegExp(r'([^\\"\n\r]*)', );
 
-	final RE_STRING_ESCAPE = RegExp(r'\\([\\"])', caseSensitive: false, multiLine: true,);
-	final RE_UNICODE_ESCAPE = RegExp(r"\\u([a-fA-F0-9]{4})|\\U([a-fA-F0-9]{6})", caseSensitive: false, multiLine: true,);
+	final RE_STRING_ESCAPE = RegExp(r'\\([\\"])', );
+	final RE_UNICODE_ESCAPE = RegExp(r"\\u([a-fA-F0-9]{4})|\\U([a-fA-F0-9]{6})", );
 
 	// Used for trimming TextElements and indents.
-	final RE_LEADING_NEWLINES = RegExp(r'^\n+', caseSensitive: false, );
-	final RE_TRAILING_SPACES = RegExp(r' +$', caseSensitive: false, );
+	final RE_LEADING_NEWLINES = RegExp(r'^\n+', );
+	final RE_TRAILING_SPACES = RegExp(r' +$', );
 	// Used in makeIndent to strip spaces from blank lines and normalize CRLF to LF.
-	final RE_BLANK_LINES = RegExp(r' *\r?\n', caseSensitive: false, multiLine: true, dotAll: true);
+	final RE_BLANK_LINES = RegExp(r' *\r?\n', dotAll: true);
 	// Used in makeIndent to measure the indentation.
-	final RE_INDENT = RegExp(r'( *)$', caseSensitive: false, multiLine: true,);
+	final RE_INDENT = RegExp(r'( *)$', );
 
 	// Common tokens.
-	final TOKEN_BRACE_OPEN = RegExp(r'{\s*', caseSensitive: false, multiLine: false,);
-	final TOKEN_BRACE_CLOSE = RegExp(r'\s*}', caseSensitive: false, multiLine: false,);
-	final TOKEN_BRACKET_OPEN = RegExp(r'\[\s*', caseSensitive: false, multiLine: false,);
-	final TOKEN_BRACKET_CLOSE = RegExp(r'\s*] *', caseSensitive: false, multiLine: false,);
-	final TOKEN_PAREN_OPEN = RegExp(r'\s*\(\s*', caseSensitive: false, multiLine: false,);
-	final TOKEN_ARROW = RegExp(r'\s*->\s*', caseSensitive: false, multiLine: false,);
-	final TOKEN_COLON = RegExp(r'\s*:\s*', caseSensitive: false, multiLine: false,);
+	final TOKEN_BRACE_OPEN = RegExp(r'{\s*', );
+	final TOKEN_BRACE_CLOSE = RegExp(r'\s*}', );
+	final TOKEN_BRACKET_OPEN = RegExp(r'\[\s*', );
+	final TOKEN_BRACKET_CLOSE = RegExp(r'\s*] *', );
+	final TOKEN_PAREN_OPEN = RegExp(r'\s*\(\s*', );
+	final TOKEN_ARROW = RegExp(r'\s*->\s*', );
+	final TOKEN_COLON = RegExp(r'\s*:\s*', );
 	// Note the optional comma. As a deviation from the Fluent EBNF, the parser
 	// doesn't enforce commas between call arguments.
-	final TOKEN_COMMA = RegExp(r'\s*,?\s*', caseSensitive: false, multiLine: true,);
-	final TOKEN_BLANK = RegExp(r'\s+', caseSensitive: false, multiLine: true,);
+	final TOKEN_COMMA = RegExp(r'\s*,?\s*', );
+	final TOKEN_BLANK = RegExp(r'\s+', );
 
 
 	final String source;
@@ -60,13 +60,25 @@ class FluentParser {
 	FluentParser(this.source);
 
 	Resource parse() {
+		cursor = 0;
 		// Iterate over the beginnings of messages and terms to efficiently skip
 		// comments and recover from errors.
 		Resource resource = Resource();
 		for(RegExpMatch match in RE_MESSAGE_START.allMatches(source)) {
 			String id = match.group(1);
 			cursor = match.end;
-			resource.body.add(parseMessage(id));
+			try {
+				resource.body.add(parseMessage(id));
+			}
+			on SyntaxError catch(e) {
+				// Don't report any Fluent syntax errors. Skip directly to the
+				// beginning of the next message or term.
+				print(e);
+				continue;
+			}
+			catch(err) {
+				throw err;
+			}
 		}
 		return resource;
 	}
@@ -267,8 +279,36 @@ class FluentParser {
 	}
 
 	List<Variant> parseVariants() {
-		//TODO parse variants
-		return [];
+		List<Variant> variants = [];
+		bool hasStar = false;
+		while (test(RE_VARIANT_START)) {
+			bool isDefault = consumeChar("*");
+			hasStar = hasStar || isDefault;
+			final key = parseVariantKey();
+			final value = parsePattern();
+			if (value == null) {
+				throw SyntaxError("Expected variant value");
+			}
+			variants.add(Variant(key, value, isDefault));
+		}
+		if(!hasStar) {
+			throw SyntaxError("Expected default variant");
+		}
+		return variants;
+	}
+
+	Literal parseVariantKey() {
+		consumeToken(TOKEN_BRACKET_OPEN, true);
+		Literal key;
+		if (test(RE_NUMBER_LITERAL)) {
+			key = parseNumberLiteral();
+		}
+		else {
+			String value = match1(RE_IDENTIFIER);
+			key = StringLiteral(value);
+		}
+		consumeToken(TOKEN_BRACKET_CLOSE, true);
+		return key;
 	}
 
 	Literal parseLiteral() {
