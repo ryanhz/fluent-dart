@@ -53,7 +53,7 @@ class FluentBundle {
         return this._messages.containsKey(id);
     }
 
-    String format(String id,  [Map<String, dynamic> args = const {}, List<Error> errors]) {
+    String format(String id,  {Map<String, dynamic> args = const {}, List<Error> errors}) {
         Message message = this._messages[id];
         if(message==null) {
             return null;
