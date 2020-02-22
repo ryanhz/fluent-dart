@@ -134,7 +134,7 @@ class FluentParser {
 		}
 		if(first!=null) {
 			// It was just a simple inline text after all.
-			return Pattern.from([TextElement(trim(first, RE_TRAILING_SPACES))]);
+			return Pattern([TextElement(trim(first, RE_TRAILING_SPACES))]);
 		}
 		return null;
 	}
@@ -165,8 +165,7 @@ class FluentParser {
 			break;
 		}
 
-		final lastIndex = elements.length - 1;
-		final lastElement = elements[lastIndex];
+		final lastElement = elements.last;
 		// Trim the trailing spaces in the last element if it's a TextElement.
 		if(lastElement is TextElement) {
 			lastElement.value = trim(lastElement.value, RE_TRAILING_SPACES);
@@ -185,7 +184,7 @@ class FluentParser {
 				baked.add(element);
 			}
 		}
-		return Pattern.from(baked);
+		return Pattern(baked);
 	}
 
 	Expression parsePlaceable() {
@@ -223,7 +222,7 @@ class FluentParser {
 
 				if (sigil == "-") {
 					// A parameterized term: -term(...).
-					return TermReference(name, attr, args);
+					return TermReference("-$name", attr, args);
 				}
 				if (RE_FUNCTION_NAME.hasMatch(name)) {
 					return FunctionReference(name, args);
@@ -234,7 +233,7 @@ class FluentParser {
 
 			if (sigil == "-") {
 				// A non-parameterized term: -term.
-				return TermReference(name, attr);
+				return TermReference("-$name", attr);
 			}
 
 			return MessageReference(name, attr);
@@ -267,7 +266,7 @@ class FluentParser {
 			if (consumeToken(TOKEN_COLON)) {
 				// The reference is the beginning of a named argument.
 				final value = parseLiteral();
-				return NamedArgument(expr.id, value);
+				return NamedArgument(expr.name, value);
 			}
 
 			// It's a regular message reference.
@@ -377,7 +376,7 @@ class FluentParser {
 	// line. Skip it othwerwise.
 	Indent parseIndent() {
 		int start = cursor;
-		consumeToken(TOKEN_BLANK, false);
+		consumeToken(TOKEN_BLANK);
 
 		// Check the first non-blank character after the indent.
 		if(cursor>=source.length) {
@@ -389,6 +388,7 @@ class FluentParser {
 			case "[":
 			case "*":
 			case "}":
+				return null;
 			case "{":
 				// Placeables don't require indentation (in EBNF: block-placeable).
 				// Continue the Pattern.

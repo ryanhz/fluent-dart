@@ -8,6 +8,7 @@ environment:
   sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
+  intl: ^0.16.1
   petitparser: ^2.4.0
 
 dev_dependencies:

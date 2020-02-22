@@ -1,49 +1,22 @@
-class Resource extends ASTNode {
-	final List<Entry> body = [];
+
+class Resource {
+	final List<Message> body = [];
 	Resource();
 }
 
-abstract class Entry extends ASTNode {}
-
-class Comment extends Entry {
-	final String content;
-	Comment(this.content);
-}
-
-class GroupComment extends Comment {
-	GroupComment(String content): super(content);
-}
-
-class ResourceComment extends Comment {
-	ResourceComment(String content): super(content);
-}
-
-class Junk extends Entry {
-	final String content;
-	Junk(this.content);
-}
-
-class Message extends Entry {
+class Message {
 	final String id;
 	final Pattern value;
 	final Map<String, Pattern> attributes;
 	Message(this.id, this.value, [this.attributes=const {}]);
 }
 
-class Term extends Entry {
-	final String id;
-	final Pattern value;
-	final Map<String, Pattern> attributes;
-	Term(this.id, this.value, [this.attributes=const {}]);
-}
-
-class Pattern extends ASTNode {
+class Pattern {
 	List<PatternElement> elements = [];
-	Pattern();
-	Pattern.from(this.elements);
+	Pattern(this.elements);
 }
 
-abstract class PatternElement extends ASTNode {
+abstract class PatternElement {
 	PatternElement();
 }
 
@@ -62,21 +35,21 @@ class Expression extends PatternElement {
 }
 
 class VariableReference extends Expression {
-	final String id;
-	VariableReference(this.id);
+	final String name;
+	VariableReference(this.name);
 }
 
 class TermReference extends Expression {
-	final String id;
-	final String attribute;
+	final String name;
+	final String attr;
 	final List<Argument> arguments;
-	TermReference(this.id, this.attribute, [this.arguments = const []]);
+	TermReference(this.name, this.attr, [this.arguments = const []]);
 }
 
 class MessageReference extends Expression {
-	final String id;
-	final String attribute;
-	MessageReference(this.id, this.attribute);
+	final String name;
+	final String attr;
+	MessageReference(this.name, this.attr);
 }
 
 abstract class Literal extends Expression {
@@ -95,17 +68,17 @@ class NumberLiteral extends Literal {
 }
 
 class FunctionReference extends Expression {
-	final String id;
+	final String name;
 	final List<Argument> arguments;
-	FunctionReference(this.id, [this.arguments = const []]);
+	FunctionReference(this.name, [this.arguments = const []]);
 }
 
-abstract class Argument extends ASTNode {
+abstract class Argument {
 }
 
 class PositionalArgument extends Argument {
-	final Expression expression;
-	PositionalArgument(this.expression);
+	final Expression value;
+	PositionalArgument(this.value);
 }
 
 class NamedArgument extends Argument {
@@ -120,11 +93,9 @@ class SelectExpression extends Expression {
 	SelectExpression(this.selector, this.variants);
 }
 
-class Variant extends ASTNode {
+class Variant {
 	final Literal key;
 	final Pattern value;
 	final bool isDefault;
 	Variant(this.key, this.value, this.isDefault);
 }
-
-abstract class ASTNode {}
