@@ -32,20 +32,20 @@ Using FluentBundle
 
 Once you have some FTL files, you can generate translations using the ``fluent`` package. You start with the ``FluentBundle`` class:
 
-.. code-block:: dart
+::
 
-import 'package:fluent/fluent.dart';
+    import 'package:fluent/fluent.dart';
 
 You pass a locale to the constructor:
 
-.. code-block:: dart
+::
 
     final bundle = FluentBundle('en-US');
 
 You must then add messages. These would normally come from a ``.ftl``
 file stored on disk, here we will just add them directly:
 
-.. code-block:: dart
+::
 
     bundle.addMessages('''
     welcome = Welcome to this great app!
@@ -59,14 +59,15 @@ the Fluent philosophy, the implementation tries hard to recover from any
 formatting errors and generate the most human readable representation of
 the value.
 
-.. code-block:: dart
+::
 
 	List<Error> errors = [];
     translated = bundle.format('welcome', errors: errors)
     translated = bundle.format('greet-by-name', args: {'name': 'Jane'}, errors: errors)
 
+
 Known limitations and bugs
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 - We do not yet support ``NUMBER(..., currencyDisplay="...", minimumSignificantDigits="...", maximumSignificantDigits=".. ")``
 
