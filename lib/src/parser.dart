@@ -55,7 +55,7 @@ class FluentParser {
 	final TOKEN_BLANK = RegExp(r'\s+', );
 
 
-	final String source;
+	String source;
 	int cursor = 0;
 	FluentParser(this.source);
 
@@ -86,7 +86,7 @@ class FluentParser {
 	Message parseMessage(String id) {
 		final value = parsePattern();
 		final attributes = parseAttributes();
-		if(value==null || attributes.length==0) {
+		if(value==null && attributes.length==0) {
 			throw SyntaxError("Expected message value or attributes");
 		}
 		return Message(id, value, attributes);
@@ -113,7 +113,7 @@ class FluentParser {
 		}
 
 		// If there's a placeable on the first line, parse a complex pattern.
-		if (source[cursor] == "{" || source[cursor] == "}") {
+		if (currentChar() == "{" || currentChar() == "}") {
 			// Re-use the text parsed above, if possible.
 			return parsePatternElements(first!=null ? [TextElement(first)] : [], 65536);
 		}
@@ -147,12 +147,12 @@ class FluentParser {
 				continue;
 			}
 
-			if (source[cursor] == "{") {
+			if (currentChar() == "{") {
 				elements.add(parsePlaceable());
 				continue;
 			}
 
-			if (source[cursor] == "}") {
+			if (currentChar() == "}") {
 				throw SyntaxError("Unbalanced closing brace");
 			}
 
@@ -203,7 +203,7 @@ class FluentParser {
 	}
 
 	Expression parseInlineExpression() {
-		if (source[cursor] == "{") {
+		if (currentChar() == "{") {
 			// It's a nested placeable.
 			return parsePlaceable();
 		}
@@ -245,11 +245,11 @@ class FluentParser {
 	List<Argument> parseArguments() {
 		List<Argument> args = [];
 		while (true) {
-			if(cursor>=source.length) {
+			if(currentChar()==null) {
 				throw SyntaxError("Unclosed argument list");
 			}
 			// End of the argument list.
-			else if(source[cursor]==")") {
+			else if(currentChar()==")") {
 				cursor++;
 				return args;
 			}
@@ -315,7 +315,7 @@ class FluentParser {
 			return parseNumberLiteral();
 		}
 
-		if (source[cursor] == '"') {
+		if (currentChar() == '"') {
 			return parseStringLiteral();
 		}
 
@@ -341,7 +341,7 @@ class FluentParser {
 				// We've reached an EOL of EOF.
 				throw SyntaxError("Unclosed string literal");
 			}
-			if (source[cursor] == "\\") {
+			if (currentChar() == "\\") {
 				sb.write(parseEscapeSequence());
 				continue;
 			}
@@ -379,11 +379,11 @@ class FluentParser {
 		consumeToken(TOKEN_BLANK);
 
 		// Check the first non-blank character after the indent.
-		if(cursor>=source.length) {
+		if(currentChar()==null) {
 			// EOF: A special character. End the Pattern.
 			return null;
 		}
-		switch (source[cursor]) {
+		switch (currentChar()) {
 			case ".":
 			case "[":
 			case "*":
@@ -441,7 +441,7 @@ class FluentParser {
 	// Advance the cursor by the char if it matches. May be used as a predicate
 	// (was the match found?) or, if errorClass is passed, as an assertion.
 	bool consumeChar(String char, [bool raiseError=false]) {
-		if (source[cursor] == char) {
+		if (currentChar() == char) {
 			cursor++;
 			return true;
 		}
@@ -465,5 +465,13 @@ class FluentParser {
 		return false;
 	}
 
+	String currentChar() {
+		if(cursor>=source.length) {
+			return null;
+		}
+		else {
+			return source[cursor];
+		}
+	}
 }
 

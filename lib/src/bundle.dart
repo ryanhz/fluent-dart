@@ -34,7 +34,7 @@ class FluentBundle {
         'DATETIME': DATETIME,
     };
 
-    FluentBundle(this.locale, {this.useIsolating = true, this.transform = identity });
+    FluentBundle(this.locale, {this.useIsolating = false, this.transform = identity });
 
     void addMessages(String source) {
         FluentParser parser = FluentParser(source);
@@ -98,6 +98,10 @@ class FluentBundle {
 
         for(var element in pattern.elements) {
             if(element is TextElement) {
+                sb.write(transform(element.value));
+                continue;
+            }
+            if(element is Indent) {
                 sb.write(transform(element.value));
                 continue;
             }

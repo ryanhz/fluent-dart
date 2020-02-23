@@ -19,7 +19,7 @@ class Scope {
     * Billion Laughs and Quadratic Blowup attacks. */
     int placeables = 0;
 
-    Scope(this.bundle, this.errors, this.args, [this.params = const {}]);
+    Scope(this.bundle, this.errors, this.args, [this.params]);
 
     void reportError(Error error) {
         if(this.errors==null) {
