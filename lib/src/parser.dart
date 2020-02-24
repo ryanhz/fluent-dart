@@ -327,7 +327,7 @@ class FluentParser {
 		String value = m.group(1);
 		String fraction = m.group(2) ?? "";
 		int precision = fraction.length;
-		return NumberLiteral(double.parse(value), precision);
+		return NumberLiteral(precision==0? int.parse(value):double.parse(value), precision);
 	}
 
 	StringLiteral parseStringLiteral() {

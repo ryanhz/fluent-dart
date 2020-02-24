@@ -111,14 +111,6 @@ your-score =
        *[other] You scored { NUMBER($score, minimumFractionDigits: 1) } points.
     }
 
-your-rank = { NUMBER($pos, type: "ordinal") ->
-   [1] You finished first!
-   [one] You finished {$pos}st
-   [two] You finished {$pos}nd
-   [few] You finished {$pos}rd
-  *[other] You finished {$pos}th
-}
-
 login-input = Predefined value
     .placeholder = email@example.com
     .aria-label = Login input value

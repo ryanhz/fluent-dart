@@ -1,8 +1,6 @@
+import 'types.dart';
 
-
-import 'package:intl/intl.dart';
-
-String NUMBER(num number, {
+FluentValue NUMBER(num number, {
     String locale,
     String style,
     String currency,
@@ -14,33 +12,18 @@ String NUMBER(num number, {
     // int minimumSignificantDigits,
     // int maximumSignificantDigits,
 }) {
-    NumberFormat nf;
-    switch(style) {
-        case "decimal":
-            nf = NumberFormat.decimalPattern(locale);
-            break;
-        case "currency":
-            nf = NumberFormat.currency(locale: locale, name: currency, symbol: currency);
-            break;
-        case "percent":
-            nf = NumberFormat.percentPattern(locale);
-            break;
-        case "unit":
-        default:
-            nf = NumberFormat.decimalPattern(locale);
-            break;
-    }
-    if(useGrouping==false) {
-        nf.turnOffGrouping();
-    }
-    nf.minimumIntegerDigits = minimumIntegerDigits ?? nf.minimumIntegerDigits;
-    nf.minimumFractionDigits = minimumFractionDigits ?? nf.minimumFractionDigits;
-    nf.maximumFractionDigits = maximumFractionDigits ?? nf.maximumFractionDigits;
-
-    return nf.format(number);
+    return FluentNumber(number,
+        locale: locale,
+        style: style,
+        currency: currency,
+        useGrouping: useGrouping,
+        minimumIntegerDigits: minimumIntegerDigits,
+        minimumFractionDigits: minimumFractionDigits,
+        maximumFractionDigits: maximumFractionDigits,
+    );
 }
 
-String DATETIME(DateTime datetime, {
+FluentValue DATETIME(DateTime datetime, {
     String locale,
     String pattern,
     String calendar,
@@ -57,6 +40,21 @@ String DATETIME(DateTime datetime, {
     String second,
     String timeZoneName,
 }) {
-    DateFormat df = DateFormat(pattern, locale);
-    return df.format(datetime);
+    return FluentDateTime(datetime,
+        locale: locale,
+        pattern: pattern,
+        calendar: calendar,
+        numberingSystem: numberingSystem,
+        timeZone: timeZone,
+        hour12: hour12,
+        weekday: weekday,
+        era: era,
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        minute: minute,
+        second: second,
+        timeZoneName: timeZoneName,
+    );
 }

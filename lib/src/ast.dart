@@ -62,7 +62,7 @@ class StringLiteral extends Literal {
 }
 
 class NumberLiteral extends Literal {
-	final double value;
+	final num value;
 	final int precision;
 	NumberLiteral(this.value, this.precision);
 }
