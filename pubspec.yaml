@@ -1,7 +1,6 @@
 name: fluent
 description: Fluent is a Dart implementation of Project Fluent, a localization framework designed to unleash the expressive power of the natural language.
 version: 0.0.1
-author: Ryan Hu
 homepage: https://github.com/ryanhz/fluent-dart
 
 environment:
