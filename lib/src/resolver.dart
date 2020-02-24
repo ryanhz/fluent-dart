@@ -260,6 +260,12 @@ bool match(Scope scope, FluentValue selector, FluentValue key) {
     return true;
   }
 
+  if (key is FluentString &&
+      selector is FluentString &&
+      key.value == selector.value) {
+    return true;
+  }
+
   if (selector is FluentNumber && key is FluentString) {
     plural_rules.PluralRule pluralRule =
         _pluralRule(scope.bundle.locale, selector.value);

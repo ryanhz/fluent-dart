@@ -283,4 +283,20 @@ help-menu-save = Click { menu-save } to save the file.''');
 		translated = bundle.format("your-score", args: {'score': 3.14});
 		expect(translated, '''You scored 3.14 points.''');
 	});
+	test('shared-photos', () {
+		FluentBundle bundle = FluentBundle("en-GB");
+		bundle.addMessages('''shared-photos =
+    {\$userName} {\$photoCount ->
+        [one] added a new photo
+       *[other] added {\$photoCount} new photos
+    } to {\$userGender ->
+        [male] his stream
+        [female] her stream
+       *[other] their stream
+    }.''');
+		String translated = bundle.format("shared-photos", args: {'userName': "Anne", 'userGender': "female", "photoCount": 3});
+		expect(translated, '''Anne added 3 new photos to her stream.''');
+		translated = bundle.format("shared-photos", args: {'userName': "Tom", 'userGender': "male", "photoCount": 1});
+		expect(translated, '''Tom added a new photo to his stream.''');
+	});
 }
