@@ -6,9 +6,6 @@ Project Fluent keeps simple things simple and makes complex things possible. The
 
 ## Getting Started
 
-Using Fluent Runtime
-====================
-
 Learn the FTL syntax
 --------------------
 
