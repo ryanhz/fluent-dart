@@ -40,12 +40,15 @@ class FluentBundle {
   }
 
   String format(String id,
-      {Map<String, dynamic> args = const {}, List<Error> errors}) {
+      {Map<String, dynamic> args = const {}, List<Error> errors, String attribute}) {
     Message message = this.messages[id];
     if (message == null) {
       return null;
     }
-    Pattern pattern = message.value;
+    Pattern pattern = attribute == null ? message.value : message.attributes[attribute];
+    if (pattern == null) {
+      return null;
+    }
     // Resolve a simple pattern without creating a scope. No error handling is
     // required; by definition simple patterns don't have placeables.
     if (pattern.elements.length == 1) {
