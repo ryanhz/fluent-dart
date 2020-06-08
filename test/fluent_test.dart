@@ -70,6 +70,16 @@ at the beginning of the third line:
 		expect(translated, '''To add an attribute to this messages, write
 .attr = Value on a new line.''');
 	});
+	test('use-attribute', () {
+		FluentBundle bundle = FluentBundle("en-GB");
+		bundle.addMessages('''attribute-how-to =
+    To add an attribute to this messages, write
+    {".attr = Value"} on a new line.
+    .attr = An actual attribute (not part of the text value above)
+''');
+		String translated = bundle.format("attribute-how-to", attribute: "attr");
+		expect(translated, '''An actual attribute (not part of the text value above)''');
+	});
 	test('literal-quote1', () {
 		FluentBundle bundle = FluentBundle("en-GB");
 		bundle.addMessages('''# This is OK, but cryptic and hard to read and edit.
