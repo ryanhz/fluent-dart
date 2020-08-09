@@ -5,5 +5,5 @@
 ## [1.0.1] - Mar 6, 2020
 * Fixed selector failed with string type
 
-## [1.0.2] - Aug 9, 2020
+## [1.0.2+3] - Aug 9, 2020
 * Allow formatting attributes from @seb-iot
