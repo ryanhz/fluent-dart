@@ -1,11 +1,11 @@
 library fluent;
 
 import 'ast.dart';
-import 'parser.dart';
-import 'types.dart';
 import 'builtin.dart';
-import 'scope.dart';
+import 'parser.dart';
 import 'resolver.dart';
+import 'scope.dart';
+import 'types.dart';
 
 typedef String TextTransform(String text);
 String identity(String s) => s;
@@ -23,8 +23,7 @@ class FluentBundle {
     'DATETIME': DATETIME,
   };
 
-  FluentBundle(this.locale,
-      {this.useIsolating = false, this.transform = identity});
+  FluentBundle(this.locale, {this.useIsolating = false, this.transform = identity});
 
   void addMessages(String source) {
     FluentParser parser = FluentParser(source);
@@ -39,13 +38,12 @@ class FluentBundle {
     return this.messages.containsKey(id);
   }
 
-  String format(String id,
-      {Map<String, dynamic> args = const {}, List<Error> errors, String attribute}) {
-    Message message = this.messages[id];
+  String? format(String id, {Map<String, dynamic> args = const {}, List<Error>? errors, String? attribute}) {
+    Message? message = this.messages[id];
     if (message == null) {
       return null;
     }
-    Pattern pattern = attribute == null ? message.value : message.attributes[attribute];
+    Pattern? pattern = attribute == null ? message.value : message.attributes[attribute];
     if (pattern == null) {
       return null;
     }
@@ -62,7 +60,7 @@ class FluentBundle {
     try {
       FluentValue value = resolvePattern(scope, pattern);
       return value.toString();
-    } catch (err) {
+    } on Error catch (err) {
       if (errors != null) {
         errors.add(err);
         return null;

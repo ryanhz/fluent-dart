@@ -2,14 +2,14 @@ import 'types.dart';
 
 FluentValue NUMBER(
   num number, {
-  String locale,
-  String style,
-  String currency,
+  String? locale,
+  String? style,
+  String? currency,
   // String currencyDisplay,
-  bool useGrouping,
-  int minimumIntegerDigits,
-  int minimumFractionDigits,
-  int maximumFractionDigits,
+  bool useGrouping = true,
+  int? minimumIntegerDigits,
+  int? minimumFractionDigits,
+  int? maximumFractionDigits,
   // int minimumSignificantDigits,
   // int maximumSignificantDigits,
 }) {
@@ -27,21 +27,21 @@ FluentValue NUMBER(
 
 FluentValue DATETIME(
   DateTime datetime, {
-  String locale,
-  String pattern,
-  String calendar,
-  String numberingSystem,
-  String timeZone,
-  bool hour12,
-  String weekday,
-  String era,
-  String year,
-  String month,
-  String day,
-  String hour,
-  String minute,
-  String second,
-  String timeZoneName,
+  String? locale,
+  String? pattern,
+  String? calendar,
+  String? numberingSystem,
+  String? timeZone,
+  bool hour12 = false,
+  String? weekday,
+  String? era,
+  String? year,
+  String? month,
+  String? day,
+  String? hour,
+  String? minute,
+  String? second,
+  String? timeZoneName,
 }) {
   return FluentDateTime(
     datetime,

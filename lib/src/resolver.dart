@@ -47,15 +47,13 @@ FluentValue resolvePattern(Scope scope, Pattern pattern) {
       // on this pattern. The length check protects against excessive memory
       // usage, and throwing protects against eating up the CPU when long
       // placeables are deeply nested.
-      throw RangeError(
-          "Too many placeables expanded: ${scope.placeables}, max allowed is $MAX_PLACEABLES");
+      throw RangeError("Too many placeables expanded: ${scope.placeables}, max allowed is $MAX_PLACEABLES");
     }
 
     if (useIsolating) {
       result.add(FluentString(FSI));
     }
-
-    result.add(resolveExpression(scope, element));
+    result.add(resolveExpression(scope, element as Expression));
 
     if (useIsolating) {
       result.add(FluentString(PDI));
@@ -71,8 +69,7 @@ FluentValue resolveExpression(Scope scope, Expression expr) {
   if (expr is StringLiteral) {
     return FluentString(expr.value);
   } else if (expr is NumberLiteral) {
-    return FluentNumber(expr.value,
-        locale: scope.bundle.locale, minimumFractionDigits: expr.precision);
+    return FluentNumber(expr.value, locale: scope.bundle.locale, minimumFractionDigits: expr.precision);
   } else if (expr is VariableReference) {
     return resolveVariableReference(scope, expr);
   } else if (expr is MessageReference) {
@@ -91,10 +88,11 @@ FluentValue resolveExpression(Scope scope, Expression expr) {
 // Resolve a reference to a variable.
 FluentValue resolveVariableReference(Scope scope, VariableReference reference) {
   var arg;
-  if (scope.params != null) {
+  final params = scope.params;
+  if (params != null) {
     // We're inside a TermReference. It's OK to reference undefined parameters.
-    if (scope.params.containsKey(reference.name)) {
-      arg = scope.params[reference.name];
+    if (params.containsKey(reference.name)) {
+      arg = params[reference.name];
     } else {
       return FluentNone("\$${reference.name}");
     }
@@ -122,8 +120,7 @@ FluentValue resolveVariableReference(Scope scope, VariableReference reference) {
   } else if (arg is DateTime) {
     return FluentDateTime(arg, locale: scope.bundle.locale);
   } else {
-    scope.reportError(UnsupportedError(
-        "Variable type not supported: ${reference.name}, ${arg.runtimeType}"));
+    scope.reportError(UnsupportedError("Variable type not supported: ${reference.name}, ${arg.runtimeType}"));
     return FluentNone("\$${reference.name}");
   }
 }
@@ -131,7 +128,7 @@ FluentValue resolveVariableReference(Scope scope, VariableReference reference) {
 // Resolve a reference to another message.
 FluentValue resolveMessageReference(Scope scope, MessageReference reference) {
   String name = reference.name;
-  String attr = reference.attr;
+  String? attr = reference.attr;
   final message = scope.bundle.messages[name];
   if (message == null) {
     scope.reportError(ReferenceError("Unknown message: $name"));
@@ -145,8 +142,9 @@ FluentValue resolveMessageReference(Scope scope, MessageReference reference) {
     scope.reportError(ReferenceError("Unknown attribute: $attr"));
     return FluentNone("$name.$attr");
   }
-  if (message.value != null) {
-    return resolvePattern(scope, message.value);
+  var pattern = message.value;
+  if (pattern != null) {
+    return resolvePattern(scope, pattern);
   }
 
   scope.reportError(ReferenceError("No value: $name"));
@@ -156,7 +154,7 @@ FluentValue resolveMessageReference(Scope scope, MessageReference reference) {
 // Resolve a call to a Term with key-value arguments.
 FluentValue resolveTermReference(Scope scope, TermReference reference) {
   String name = reference.name;
-  String attr = reference.attr;
+  String? attr = reference.attr;
   List<Argument> args = reference.arguments;
   final term = scope.bundle.messages[name];
   if (term == null) {
@@ -177,7 +175,12 @@ FluentValue resolveTermReference(Scope scope, TermReference reference) {
   }
 
   scope.params = getArguments(scope, args).named;
-  final resolved = resolvePattern(scope, term.value);
+  var pattern = term.value;
+  if (pattern == null) {
+    scope.reportError(ReferenceError("No pattern"));
+    return FluentNone("$name");
+  }
+  final resolved = resolvePattern(scope, pattern);
   scope.params = null;
   return resolved;
 }
@@ -200,7 +203,7 @@ FluentValue resolveFunctionReference(Scope scope, FunctionReference reference) {
   try {
     final resolved = getArguments(scope, args);
     return Function.apply(func, resolved.positional, resolved.named);
-  } catch (err) {
+  } on Error catch (err) {
     scope.reportError(err);
     return FluentNone("$name()");
   }
@@ -254,22 +257,17 @@ bool match(Scope scope, FluentValue selector, FluentValue key) {
     return true;
   }
   // XXX Consider comparing options too, e.g. minimumFractionDigits.
-  if (key is FluentNumber &&
-      selector is FluentNumber &&
-      key.value == selector.value) {
+  if (key is FluentNumber && selector is FluentNumber && key.value == selector.value) {
     return true;
   }
 
-  if (key is FluentString &&
-      selector is FluentString &&
-      key.value == selector.value) {
+  if (key is FluentString && selector is FluentString && key.value == selector.value) {
     return true;
   }
 
   if (selector is FluentNumber && key is FluentString) {
-    plural_rules.PluralRule pluralRule =
-        _pluralRule(scope.bundle.locale, selector.value);
-    plural_rules.PluralCase pluralCase = pluralRule();
+    plural_rules.PluralRule? pluralRule = _pluralRule(scope.bundle.locale, selector.value);
+    plural_rules.PluralCase pluralCase = pluralRule!(); //null-safety !
     String category = pluralCase.toString().split('.').last.toLowerCase();
     if (key.value.toLowerCase() == category) {
       return true;
@@ -290,19 +288,16 @@ FluentValue getDefault(Scope scope, List<Variant> variants) {
   return FluentNone();
 }
 
-plural_rules.PluralRule _cachedPluralRule;
-String _cachedPluralLocale;
+plural_rules.PluralRule? _cachedPluralRule;
+String? _cachedPluralLocale;
 
-plural_rules.PluralRule _pluralRule(String locale, num howMany,
-    [int precision]) {
+plural_rules.PluralRule? _pluralRule(String locale, num howMany, [int? precision]) {
   plural_rules.startRuleEvaluation(howMany, precision);
-  var verifiedLocale = Intl.verifiedLocale(
-      locale, plural_rules.localeHasPluralRules,
-      onFailure: (locale) => 'default');
+  var verifiedLocale = Intl.verifiedLocale(locale, plural_rules.localeHasPluralRules, onFailure: (locale) => 'default');
   if (_cachedPluralLocale == verifiedLocale) {
     return _cachedPluralRule;
   } else {
-    _cachedPluralRule = plural_rules.pluralRules[verifiedLocale];
+    _cachedPluralRule = plural_rules.pluralRules[verifiedLocale]; // null-safety
     _cachedPluralLocale = verifiedLocale;
     return _cachedPluralRule;
   }

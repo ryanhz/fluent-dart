@@ -33,20 +33,20 @@ class TextElement extends PatternElement {
 class Expression extends PatternElement {}
 
 class VariableReference extends Expression {
-  final String name;
+  final String? name;
   VariableReference(this.name);
 }
 
 class TermReference extends Expression {
   final String name;
-  final String attr;
+  final String? attr;
   final List<Argument> arguments;
   TermReference(this.name, this.attr, [this.arguments = const []]);
 }
 
 class MessageReference extends Expression {
   final String name;
-  final String attr;
+  final String? attr;
   MessageReference(this.name, this.attr);
 }
 

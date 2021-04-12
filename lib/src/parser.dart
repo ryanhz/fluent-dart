@@ -7,8 +7,7 @@ import 'error.dart';
 class FluentParser {
   // This regex is used to iterate through the beginnings of messages and terms.
   // With the multiLine flag, the ^ matches at the beginning of every line.
-  final reMessageStart =
-      RegExp(r"^(-?[a-zA-Z][\w-]*) *= *", multiLine: true, dotAll: true);
+  final reMessageStart = RegExp(r"^(-?[a-zA-Z][\w-]*) *= *", multiLine: true, dotAll: true);
   // Both Attributes and Variants are parsed in while loops. These regexes are
   // used to break out of them.
   final reAttributeStart = RegExp(
@@ -106,7 +105,7 @@ class FluentParser {
     // comments and recover from errors.
     Resource resource = Resource();
     for (RegExpMatch match in reMessageStart.allMatches(source)) {
-      String id = match.group(1);
+      String id = match.group(1)!; // null-safety !
       cursor = match.end;
       try {
         resource.body.add(parseMessage(id));
@@ -128,14 +127,14 @@ class FluentParser {
     if (value == null && attributes.length == 0) {
       throw SyntaxError("Expected message value or attributes");
     }
-    return Message(id, value, attributes);
+    return Message(id, value!, attributes); // null-safety !
   }
 
   Map<String, Pattern> parseAttributes() {
     Map<String, Pattern> attrs = {};
     while (test(reAttributeStart)) {
-      String name = match1(reAttributeStart);
-      Pattern value = parsePattern();
+      String name = match1(reAttributeStart)!; // null-safety !
+      Pattern? value = parsePattern();
       if (value == null) {
         throw SyntaxError("Expected attribute value");
       }
@@ -144,8 +143,8 @@ class FluentParser {
     return attrs;
   }
 
-  Pattern parsePattern() {
-    String first;
+  Pattern? parsePattern() {
+    String? first;
     // First try to parse any simple text on the same line as the id.
     if (test(reTextRun)) {
       first = match1(reTextRun);
@@ -154,18 +153,16 @@ class FluentParser {
     // If there's a placeable on the first line, parse a complex pattern.
     if (currentChar() == "{" || currentChar() == "}") {
       // Re-use the text parsed above, if possible.
-      return parsePatternElements(
-          first != null ? [TextElement(first)] : [], 65536);
+      return parsePatternElements(first != null ? [TextElement(first)] : [], 65536);
     }
     // RE_TEXT_VALUE stops at newlines. Only continue parsing the pattern if
     // what comes after the newline is indented.
-    Indent indent = parseIndent();
+    Indent? indent = parseIndent();
     if (indent != null) {
       if (first != null) {
         // If there's text on the first line, the blank block is part of the
         // translation content in its entirety.
-        return parsePatternElements(
-            [TextElement(first), indent], indent.length);
+        return parsePatternElements([TextElement(first), indent], indent.length);
       }
       // Otherwise, we're dealing with a block pattern, i.e. a pattern which
       // starts on a new line. Discrad the leading newlines but keep the
@@ -180,12 +177,11 @@ class FluentParser {
     return null;
   }
 
-  Pattern parsePatternElements(
-      List<PatternElement> elements, int commonIndent) {
+  Pattern parsePatternElements(List<PatternElement> elements, int commonIndent) {
     while (true) {
       if (test(reTextRun)) {
-        String text = match1(reTextRun);
-        elements.add(TextElement(text));
+        String? text = match1(reTextRun); // null-safety !
+        elements.add(TextElement(text!));
         continue;
       }
 
@@ -217,8 +213,7 @@ class FluentParser {
     for (var element in elements) {
       if (element is Indent) {
         // Dedent indented lines by the maximum common indent.
-        element.value =
-            element.value.substring(0, element.value.length - commonIndent);
+        element.value = element.value.substring(0, element.value.length - commonIndent);
         if (element.value.length > 0) {
           baked.add(element);
         }
@@ -249,12 +244,12 @@ class FluentParser {
       // It's a nested placeable.
       return parsePlaceable();
     }
-
     if (test(reReference)) {
       Match m = match(reReference);
-      String sigil = m.group(1);
-      String name = m.group(2);
-      String attr = m.group(3);
+      String? sigil = m.group(1);
+      String? name = m.group(2)!;
+      String? attr = m.group(3);
+
       if (sigil == "\$") {
         return VariableReference(name);
       }
@@ -343,7 +338,7 @@ class FluentParser {
     if (test(reNumberLiteral)) {
       key = parseNumberLiteral();
     } else {
-      String value = match1(reIdentifier);
+      String value = match1(reIdentifier)!; // null-safety !
       key = StringLiteral(value);
     }
     consumeToken(tokenBracketClose, true);
@@ -364,18 +359,17 @@ class FluentParser {
 
   NumberLiteral parseNumberLiteral() {
     Match m = match(reNumberLiteral);
-    String value = m.group(1);
+    String value = m.group(1)!; // null-safety !
     String fraction = m.group(2) ?? "";
     int precision = fraction.length;
-    return NumberLiteral(
-        precision == 0 ? int.parse(value) : double.parse(value), precision);
+    return NumberLiteral(precision == 0 ? int.parse(value) : double.parse(value), precision);
   }
 
   StringLiteral parseStringLiteral() {
     consumeChar('"', true);
     StringBuffer sb = StringBuffer();
     while (true) {
-      String value = match1(reStringRun);
+      String? value = match1(reStringRun);
       sb.write(value);
 
       if (currentChar() == null) {
@@ -392,16 +386,18 @@ class FluentParser {
     }
   }
 
-  String parseEscapeSequence() {
+  String? parseEscapeSequence() {
     if (test(reStringEscape)) {
       return match1(reStringEscape);
     }
 
     if (test(reUnicodeEscape)) {
       Match m = match(reUnicodeEscape);
-      String codepoint4 = m.group(1);
-      String codepoint6 = m.group(2);
-      int codepoint = int.parse(codepoint4 ?? codepoint6, radix: 16);
+      String? codepoint4 = m.group(1);
+      String? codepoint6 = m.group(2);
+
+      int codepoint = int.parse(codepoint4 ?? codepoint6 ?? '', radix: 16); //debug: can this '' cause issues ?
+
       return codepoint <= 0xd7ff || 0xe000 <= codepoint
           // It's a Unicode scalar value.
           ? String.fromCharCode(codepoint)
@@ -415,7 +411,7 @@ class FluentParser {
 
   // Parse blank space. Return it if it looks like indent before a pattern
   // line. Skip it othwerwise.
-  Indent parseIndent() {
+  Indent? parseIndent() {
     int start = cursor;
     consumeToken(tokenBlank);
 
@@ -451,10 +447,10 @@ class FluentParser {
   }
 
   // Normalize a blank block and extract the indent details.
-  Indent makeIndent(String blank) {
+  Indent? makeIndent(String blank) {
     String value = blank.replaceAll(reBlankLines, "\n");
-    int length = reIndent.firstMatch(blank).group(1).length;
-    return Indent(value, length);
+    int? length = reIndent.firstMatch(blank)?.group(1)?.length;
+    return length == null ? null : Indent(value, length);
   }
 
   // Trim blanks in text according to the given regex.
@@ -467,7 +463,7 @@ class FluentParser {
   }
 
   Match match(RegExp re) {
-    Match result = re.matchAsPrefix(source, cursor);
+    Match? result = re.matchAsPrefix(source, cursor);
     if (result == null) {
       throw SyntaxError("Expected $re");
     }
@@ -475,7 +471,7 @@ class FluentParser {
     return result;
   }
 
-  String match1(RegExp re) {
+  String? match1(RegExp re) {
     return match(re).group(1);
   }
 
@@ -495,7 +491,7 @@ class FluentParser {
   // Advance the cursor by the token if it matches. May be used as a predicate
   // (was the match found?) or, if errorClass is passed, as an assertion.
   bool consumeToken(RegExp re, [bool raiseError = false]) {
-    Match result = re.matchAsPrefix(source, cursor);
+    Match? result = re.matchAsPrefix(source, cursor);
     if (result != null) {
       cursor = result.end;
       return true;
@@ -506,7 +502,7 @@ class FluentParser {
     return false;
   }
 
-  String currentChar() {
+  String? currentChar() {
     if (cursor >= source.length) {
       return null;
     } else {

@@ -12,8 +12,7 @@ class FluentValue<T> {
 
   // Format this instance of `FluentValue` to a string.
   String toString() {
-    throw UnimplementedError(
-        "Subclasses of FluentValue must implement toString().");
+    throw UnimplementedError("Subclasses of FluentValue must implement toString().");
   }
 }
 
@@ -39,14 +38,14 @@ class FluentString extends FluentValue<String> {
 
 /// A `FluentValue` representing a number.
 class FluentNumber extends FluentValue<num> {
-  final String locale;
-  final String style;
-  final String currency;
+  final String? locale;
+  final String? style;
+  final String? currency;
   // final  String currencyDisplay;
   final bool useGrouping;
-  final int minimumIntegerDigits;
-  final int minimumFractionDigits;
-  final int maximumFractionDigits;
+  final int? minimumIntegerDigits;
+  final int? minimumFractionDigits;
+  final int? maximumFractionDigits;
   // final int minimumSignificantDigits;
   // final int maximumSignificantDigits;
 
@@ -56,7 +55,7 @@ class FluentNumber extends FluentValue<num> {
     this.style,
     this.currency,
     // this.currencyDisplay,
-    this.useGrouping,
+    this.useGrouping = true,
     this.minimumIntegerDigits,
     this.minimumFractionDigits,
     this.maximumFractionDigits,
@@ -72,8 +71,7 @@ class FluentNumber extends FluentValue<num> {
         nf = NumberFormat.decimalPattern(locale);
         break;
       case "currency":
-        nf = NumberFormat.currency(
-            locale: locale, name: currency, symbol: currency);
+        nf = NumberFormat.currency(locale: locale, name: currency, symbol: currency);
         break;
       case "percent":
         nf = NumberFormat.percentPattern(locale);
@@ -83,14 +81,12 @@ class FluentNumber extends FluentValue<num> {
         nf = NumberFormat.decimalPattern(locale);
         break;
     }
-    if (useGrouping == false) {
+    if (!useGrouping) {
       nf.turnOffGrouping();
     }
     nf.minimumIntegerDigits = minimumIntegerDigits ?? nf.minimumIntegerDigits;
-    nf.minimumFractionDigits =
-        minimumFractionDigits ?? nf.minimumFractionDigits;
-    nf.maximumFractionDigits =
-        maximumFractionDigits ?? nf.maximumFractionDigits;
+    nf.minimumFractionDigits = minimumFractionDigits ?? nf.minimumFractionDigits;
+    nf.maximumFractionDigits = maximumFractionDigits ?? nf.maximumFractionDigits;
 
     return nf.format(value);
   }
@@ -98,21 +94,21 @@ class FluentNumber extends FluentValue<num> {
 
 /// A `FluentType` representing a date and time.
 class FluentDateTime extends FluentValue<DateTime> {
-  String locale;
-  String pattern;
-  String calendar;
-  String numberingSystem;
-  String timeZone;
+  String? locale;
+  String? pattern;
+  String? calendar;
+  String? numberingSystem;
+  String? timeZone;
   bool hour12;
-  String weekday;
-  String era;
-  String year;
-  String month;
-  String day;
-  String hour;
-  String minute;
-  String second;
-  String timeZoneName;
+  String? weekday;
+  String? era;
+  String? year;
+  String? month;
+  String? day;
+  String? hour;
+  String? minute;
+  String? second;
+  String? timeZoneName;
   FluentDateTime(
     DateTime value, {
     this.locale,
@@ -120,7 +116,7 @@ class FluentDateTime extends FluentValue<DateTime> {
     this.calendar,
     this.numberingSystem,
     this.timeZone,
-    this.hour12,
+    this.hour12 = false,
     this.weekday,
     this.era,
     this.year,
