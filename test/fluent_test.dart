@@ -1,4 +1,6 @@
 
+// ignore_for_file: text_direction_code_point_in_literal
+
 import 'package:fluent/fluent.dart';
 import 'package:test/test.dart';
 
