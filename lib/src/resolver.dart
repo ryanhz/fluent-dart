@@ -54,8 +54,9 @@ FluentValue resolvePattern(Scope scope, Pattern pattern) {
     if (useIsolating) {
       result.add(FluentString(FSI));
     }
-
-    result.add(resolveExpression(scope, element));
+    if(element is Expression) {
+      result.add(resolveExpression(scope, element));
+    }
 
     if (useIsolating) {
       result.add(FluentString(PDI));
@@ -93,8 +94,8 @@ FluentValue resolveVariableReference(Scope scope, VariableReference reference) {
   var arg;
   if (scope.params != null) {
     // We're inside a TermReference. It's OK to reference undefined parameters.
-    if (scope.params.containsKey(reference.name)) {
-      arg = scope.params[reference.name];
+    if (scope.params!.containsKey(reference.name)) {
+      arg = scope.params![reference.name];
     } else {
       return FluentNone("\$${reference.name}");
     }
@@ -131,7 +132,7 @@ FluentValue resolveVariableReference(Scope scope, VariableReference reference) {
 // Resolve a reference to another message.
 FluentValue resolveMessageReference(Scope scope, MessageReference reference) {
   String name = reference.name;
-  String attr = reference.attr;
+  String? attr = reference.attr;
   final message = scope.bundle.messages[name];
   if (message == null) {
     scope.reportError(ReferenceError("Unknown message: $name"));
@@ -146,7 +147,7 @@ FluentValue resolveMessageReference(Scope scope, MessageReference reference) {
     return FluentNone("$name.$attr");
   }
   if (message.value != null) {
-    return resolvePattern(scope, message.value);
+    return resolvePattern(scope, message.value!);
   }
 
   scope.reportError(ReferenceError("No value: $name"));
@@ -156,7 +157,7 @@ FluentValue resolveMessageReference(Scope scope, MessageReference reference) {
 // Resolve a call to a Term with key-value arguments.
 FluentValue resolveTermReference(Scope scope, TermReference reference) {
   String name = reference.name;
-  String attr = reference.attr;
+  String? attr = reference.attr;
   List<Argument> args = reference.arguments;
   final term = scope.bundle.messages[name];
   if (term == null) {
@@ -177,7 +178,7 @@ FluentValue resolveTermReference(Scope scope, TermReference reference) {
   }
 
   scope.params = getArguments(scope, args).named;
-  final resolved = resolvePattern(scope, term.value);
+  final resolved = resolvePattern(scope, term.value!);
   scope.params = null;
   return resolved;
 }
@@ -186,21 +187,16 @@ FluentValue resolveTermReference(Scope scope, TermReference reference) {
 FluentValue resolveFunctionReference(Scope scope, FunctionReference reference) {
   String name = reference.name;
   var args = reference.arguments;
-  var func = scope.bundle.functions[name];
+  Function? func = scope.bundle.functions[name];
   if (func == null) {
     scope.reportError(ReferenceError("Unknown function: $name()"));
-    return FluentNone("$name()");
-  }
-
-  if (!(func is Function)) {
-    scope.reportError(AssertionError("Function $name() is not callable"));
     return FluentNone("$name()");
   }
 
   try {
     final resolved = getArguments(scope, args);
     return Function.apply(func, resolved.positional, resolved.named);
-  } catch (err) {
+  } on Error catch (err) {
     scope.reportError(err);
     return FluentNone("$name()");
   }
@@ -267,8 +263,11 @@ bool match(Scope scope, FluentValue selector, FluentValue key) {
   }
 
   if (selector is FluentNumber && key is FluentString) {
-    plural_rules.PluralRule pluralRule =
+    plural_rules.PluralRule? pluralRule =
         _pluralRule(scope.bundle.locale, selector.value);
+    if(pluralRule==null) {
+      return false;
+    }
     plural_rules.PluralCase pluralCase = pluralRule();
     String category = pluralCase.toString().split('.').last.toLowerCase();
     if (key.value.toLowerCase() == category) {
@@ -290,11 +289,11 @@ FluentValue getDefault(Scope scope, List<Variant> variants) {
   return FluentNone();
 }
 
-plural_rules.PluralRule _cachedPluralRule;
-String _cachedPluralLocale;
+plural_rules.PluralRule? _cachedPluralRule;
+String? _cachedPluralLocale;
 
-plural_rules.PluralRule _pluralRule(String locale, num howMany,
-    [int precision]) {
+plural_rules.PluralRule? _pluralRule(String locale, num howMany,
+    [int? precision = 0]) {
   plural_rules.startRuleEvaluation(howMany, precision);
   var verifiedLocale = Intl.verifiedLocale(
       locale, plural_rules.localeHasPluralRules,

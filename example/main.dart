@@ -7,7 +7,7 @@ void main() {
         [0.0]   You scored zero points. What happened?
        *[other] You scored { NUMBER(\$score, minimumFractionDigits: 1) } points.
     }''');
-		String translated = bundle.format("your-score", args: {'score': 0.0});
+		String? translated = bundle.format("your-score", args: {'score': 0.0});
 		print(translated);
 		translated = bundle.format("your-score", args: {'score': 3.14});
 		print(translated);

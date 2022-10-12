@@ -5,14 +5,14 @@ class Resource {
 
 class Message {
   final String id;
-  final Pattern value;
+  final Pattern? value;
   final Map<String, Pattern> attributes;
   Message(this.id, this.value, [this.attributes = const {}]);
 }
 
 class Pattern {
-  List<PatternElement> elements = [];
-  Pattern(this.elements);
+  final List<PatternElement> elements;
+  Pattern([this.elements = const <PatternElement>[]]);
 }
 
 abstract class PatternElement {
@@ -39,14 +39,14 @@ class VariableReference extends Expression {
 
 class TermReference extends Expression {
   final String name;
-  final String attr;
+  final String? attr;
   final List<Argument> arguments;
   TermReference(this.name, this.attr, [this.arguments = const []]);
 }
 
 class MessageReference extends Expression {
   final String name;
-  final String attr;
+  final String? attr;
   MessageReference(this.name, this.attr);
 }
 

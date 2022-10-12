@@ -39,13 +39,13 @@ class FluentBundle {
     return this.messages.containsKey(id);
   }
 
-  String format(String id,
-      {Map<String, dynamic> args = const {}, List<Error> errors, String attribute}) {
-    Message message = this.messages[id];
+  String? format(String id,
+      {Map<String, dynamic> args = const {}, List<Error>? errors, String? attribute}) {
+    Message? message = this.messages[id];
     if (message == null) {
       return null;
     }
-    Pattern pattern = attribute == null ? message.value : message.attributes[attribute];
+    Pattern? pattern = attribute == null ? message.value : message.attributes[attribute];
     if (pattern == null) {
       return null;
     }
@@ -58,11 +58,11 @@ class FluentBundle {
       }
     }
     // Resolve a complex pattern.
-    final scope = Scope(this, errors, args);
+    final scope = Scope(this, args, errors);
     try {
       FluentValue value = resolvePattern(scope, pattern);
       return value.toString();
-    } catch (err) {
+    } on Error catch (err) {
       if (errors != null) {
         errors.add(err);
         return null;
