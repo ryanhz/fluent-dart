@@ -115,7 +115,7 @@ class FluentParser {
         // beginning of the next message or term.
         print(e);
         continue;
-      } catch (err) {
+      } catch (err, _) {
         throw err;
       }
     }
@@ -252,9 +252,9 @@ class FluentParser {
 
     if (test(reReference)) {
       Match m = match(reReference);
-      String sigil = m.group(1)!;
+      String? sigil = m.group(1);
       String name = m.group(2)!;
-      String attr = m.group(3)!;
+      String? attr = m.group(3);
       if (sigil == "\$") {
         return VariableReference(name);
       }
