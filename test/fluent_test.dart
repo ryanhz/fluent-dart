@@ -25,6 +25,31 @@ installing = Installing { -brand-name }.''');
 		String? translated = bundle.format("installing");
 		expect(translated, "Installing Firefox.");
 	});
+	test('term-with-variable', (() {
+		FluentBundle bundle = FluentBundle("en-GB");
+		bundle.addMessages('''-brand-name1 =
+    { \$case ->
+       *[nominative] Firefox
+        [locative] Firefoxa
+    }
+about1 = Informacje o { -brand-name1(case: "locative") }.''');
+		String? translated = bundle.format("about1");
+		expect(translated, "Informacje o Firefoxa.");
+	}));
+	test('term-with-attribute', (() {
+		FluentBundle bundle = FluentBundle("en-GB");
+		bundle.addMessages('''-brand-name2 = Aurora
+    .gender = feminine
+
+update-successful2 =
+    { -brand-name2.gender ->
+        [masculine] { -brand-name2 } został zaktualizowany.
+        [feminine] { -brand-name2 } została zaktualizowana.
+       *[other] Program { -brand-name2 } został zaktualizowany.
+    }''');
+		String? translated = bundle.format("update-successful2");
+		expect(translated, "Aurora została zaktualizowana.");
+	}));
 	test('opening-brace', () {
 		FluentBundle bundle = FluentBundle("en-GB");
 		bundle.addMessages('''opening-brace = This message features an opening curly brace: {"{"}.''');

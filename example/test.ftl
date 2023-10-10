@@ -139,8 +139,8 @@ about1 = Informacje o { -brand-name1(case: "locative") }.
     .gender = feminine
 
 update-successful2 =
-    { -brand-name.gender ->
-        [masculine] { -brand-name2} został zaktualizowany.
+    { -brand-name2.gender ->
+        [masculine] { -brand-name2 } został zaktualizowany.
         [feminine] { -brand-name2 } została zaktualizowana.
        *[other] Program { -brand-name2 } został zaktualizowany.
     }
