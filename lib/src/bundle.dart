@@ -18,10 +18,10 @@ class FluentBundle {
   final TextTransform transform;
 
   final Map<String, Message> messages = {};
-  final Map<String, Function> functions = {
-    'NUMBER': NUMBER,
-    'DATETIME': DATETIME,
-  };
+  Map<String, Function> get functions => {
+        'NUMBER': NUMBER,
+        'DATETIME': DATETIME,
+      };
 
   FluentBundle(this.locale,
       {this.useIsolating = false, this.transform = identity});
