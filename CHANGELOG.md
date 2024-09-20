@@ -9,4 +9,8 @@
 * Allow formatting attributes from @seb-iot
 
 ## [2.0.1] - Oct 13, 2020
-*  Migrated to null safety
+* Migrated to null safety
+
+## [2.0.3] - Sep 20, 2024
+* Fix symbol lookup in params map (wrong type was used as key)
+* Use locale of bundle by default for NUMBER and DATETIME
