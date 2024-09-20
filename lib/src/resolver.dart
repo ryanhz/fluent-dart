@@ -94,8 +94,9 @@ FluentValue resolveVariableReference(Scope scope, VariableReference reference) {
   var arg;
   if (scope.params != null) {
     // We're inside a TermReference. It's OK to reference undefined parameters.
-    if (scope.params!.containsKey(Symbol(reference.name))) {
-      arg = scope.params![Symbol(reference.name)];
+    final symbol = Symbol(reference.name);
+    if (scope.params!.containsKey(symbol)) {
+      arg = scope.params![symbol];
     } else {
       return FluentNone("\$${reference.name}");
     }
