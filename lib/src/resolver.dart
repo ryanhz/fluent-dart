@@ -160,7 +160,7 @@ FluentValue resolveTermReference(Scope scope, TermReference reference) {
   String name = reference.name;
   String? attr = reference.attr;
   List<Argument> args = reference.arguments;
-  final term = scope.bundle.messages[name];
+  final term = scope.bundle.terms[name];
   if (term == null) {
     scope.reportError(ReferenceError("Unknown term: $name"));
     return FluentNone(name);

@@ -7,8 +7,8 @@ import 'error.dart';
 class FluentParser {
   // This regex is used to iterate through the beginnings of messages and terms.
   // With the multiLine flag, the ^ matches at the beginning of every line.
-  final reMessageStart =
-      RegExp(r"^(-?[a-zA-Z][\w-]*) *= *", multiLine: true, dotAll: true);
+  final reMessageStart = RegExp(r"^(?<!\r)(-?[a-zA-Z][\w-]*) *= *",
+      multiLine: true, dotAll: true);
   // Both Attributes and Variants are parsed in while loops. These regexes are
   // used to break out of them.
   final reAttributeStart = RegExp(
@@ -38,10 +38,10 @@ class FluentParser {
   // escape sequence), " (ends the literal), and line breaks which are not allowed
   // in StringLiterals. Note that string runs may be empty; text runs may not.
   final reTextRun = RegExp(
-    r"([^{}\n\r]+)",
+    r"((?:[^{}\n\r]|\r(?!\n))+)",
   );
   final reStringRun = RegExp(
-    r'([^\\"\n\r]*)',
+    r'((?:[^\\"\n\r]|\r(?!\n))*)',
   );
 
   final reStringEscape = RegExp(
@@ -65,35 +65,36 @@ class FluentParser {
     r'( *)$',
   );
 
-  // Common tokens.
+  // Common tokens. Note that Fluent's grammar only treats U+0020 SPACE and
+  // line breaks as "blank" -- unlike \s, tabs and other whitespace don't count.
   final tokenBraceOpen = RegExp(
-    r'{\s*',
+    r'{(?: |\r?\n)*',
   );
   final tokenBraceClose = RegExp(
-    r'\s*}',
+    r'(?: |\r?\n)*}',
   );
   final tokenBracketOpen = RegExp(
-    r'\[\s*',
+    r'\[(?: |\r?\n)*',
   );
   final tokenBracketClose = RegExp(
-    r'\s*] *',
+    r'(?: |\r?\n)*] *',
   );
   final tokenParenOpen = RegExp(
-    r'\s*\(\s*',
+    r'(?: |\r?\n)*\((?: |\r?\n)*',
   );
   final tokenArrow = RegExp(
-    r'\s*->\s*',
+    r'(?: |\r?\n)*->(?: |\r?\n)*',
   );
   final tokenColon = RegExp(
-    r'\s*:\s*',
+    r'(?: |\r?\n)*:(?: |\r?\n)*',
   );
   // Note the optional comma. As a deviation from the Fluent EBNF, the parser
   // doesn't enforce commas between call arguments.
   final tokenComma = RegExp(
-    r'\s*,?\s*',
+    r'(?: |\r?\n)*,?(?: |\r?\n)*',
   );
   final tokenBlank = RegExp(
-    r'\s+',
+    r'(?: |\r?\n)+',
   );
 
   String source;

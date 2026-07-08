@@ -1,6 +1,7 @@
 library fluent;
 
 import 'ast.dart';
+import 'error.dart';
 import 'parser.dart';
 import 'types.dart';
 import 'builtin.dart';
@@ -18,6 +19,9 @@ class FluentBundle {
   final TextTransform transform;
 
   final Map<String, Message> messages = {};
+  // Identifiers starting with a dash (-) define terms. Terms are private and
+  // cannot be retrieved from FluentBundle.
+  final Map<String, Message> terms = {};
   Map<String, Function> get functions => {
         'NUMBER': NUMBER,
         'DATETIME': DATETIME,
@@ -26,12 +30,33 @@ class FluentBundle {
   FluentBundle(this.locale,
       {this.useIsolating = false, this.transform = identity});
 
-  void addMessages(String source) {
+  // Add a translation resource to the bundle. Returns the list of errors
+  // encountered, e.g. attempts to override an existing message or term.
+  // Overrides are allowed by default, to support merging resources from
+  // different sources (e.g. base translations plus per-tenant overrides).
+  // Pass allowOverrides: false to reject and report duplicate definitions.
+  List<Error> addMessages(String source, {bool allowOverrides = true}) {
+    List<Error> errors = [];
     FluentParser parser = FluentParser(source);
     Resource resource = parser.parse();
     for (Message message in resource.body) {
-      messages[message.id] = message;
+      if (message.id.startsWith('-')) {
+        if (!allowOverrides && terms.containsKey(message.id)) {
+          errors.add(ReferenceError(
+              'Attempt to override an existing term: "${message.id}"'));
+          continue;
+        }
+        terms[message.id] = message;
+      } else {
+        if (!allowOverrides && messages.containsKey(message.id)) {
+          errors.add(ReferenceError(
+              'Attempt to override an existing message: "${message.id}"'));
+          continue;
+        }
+        messages[message.id] = message;
+      }
     }
+    return errors;
   }
 
   // Check if a message is present in the bundle.

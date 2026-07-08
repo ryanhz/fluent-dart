@@ -336,4 +336,38 @@ help-menu-save = Click { menu-save } to save the file.''');
 		translated = bundle.format("shared-photos", args: {'userName': "Tom", 'userGender': "male", "photoCount": 1});
 		expect(translated, '''Tom added a new photo to his stream.''');
 	});
+	test('terms-are-private', () {
+		FluentBundle bundle = FluentBundle("en-GB");
+		bundle.addMessages('''-brand-name = Firefox
+installing = Installing { -brand-name }.''');
+		expect(bundle.hasMessage("-brand-name"), false);
+		expect(bundle.format("installing"), "Installing Firefox.");
+	});
+	test('addMessages-allows-duplicate-message-by-default', () {
+		FluentBundle bundle = FluentBundle("en-GB");
+		expect(bundle.addMessages("foo = Foo").length, 0);
+		expect(bundle.addMessages("foo = Bar").length, 0);
+		expect(bundle.format("foo"), "Bar");
+	});
+	test('addMessages-can-reject-duplicate-message', () {
+		FluentBundle bundle = FluentBundle("en-GB");
+		expect(bundle.addMessages("foo = Foo").length, 0);
+		expect(
+			bundle.addMessages("foo = Bar", allowOverrides: false).length, 1);
+		expect(bundle.format("foo"), "Foo");
+	});
+	test('addMessages-can-reject-duplicate-term', () {
+		FluentBundle bundle = FluentBundle("en-GB");
+		bundle.addMessages('-brand = Firefox\nfoo = { -brand }');
+		expect(
+			bundle.addMessages("-brand = Chrome", allowOverrides: false).length,
+			1);
+		expect(bundle.format("foo"), "Firefox");
+	});
+	test('crlf-message-boundaries-are-not-double-matched', () {
+		FluentBundle bundle = FluentBundle("en-GB");
+		bundle.addMessages("a = one\r\nb = two\r\n");
+		expect(bundle.format("a"), "one");
+		expect(bundle.format("b"), "two");
+	});
 }
