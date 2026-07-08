@@ -370,4 +370,25 @@ installing = Installing { -brand-name }.''');
 		expect(bundle.format("a"), "one");
 		expect(bundle.format("b"), "two");
 	});
+	test('custom-function-as-selector', () {
+		FluentValue platform() => FluentString("macos");
+		FluentBundle bundle = FluentBundle("en-GB", functions: {'PLATFORM': platform});
+		bundle.addMessages('''settings-menu-label = { PLATFORM() ->
+    [macos] Preferences
+   *[other] Settings
+}''');
+		expect(bundle.format("settings-menu-label"), "Preferences");
+	});
+	test('custom-function-receives-arguments', () {
+		FluentValue shout(String text) => FluentString(text.toUpperCase());
+		FluentBundle bundle = FluentBundle("en-GB", functions: {'SHOUT': shout});
+		bundle.addMessages('shout-it = { SHOUT("hello") }');
+		expect(bundle.format("shout-it"), "HELLO");
+	});
+	test('custom-function-can-override-builtin', () {
+		FluentValue number(num value) => FluentString("#$value#");
+		FluentBundle bundle = FluentBundle("en-GB", functions: {'NUMBER': number});
+		bundle.addMessages('overridden = { NUMBER(5) }');
+		expect(bundle.format("overridden"), "#5#");
+	});
 }

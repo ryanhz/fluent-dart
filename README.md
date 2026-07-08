@@ -53,6 +53,29 @@ the value.
     translated = bundle.format('greet-by-name', args: {'name': 'Jane'}, errors: errors)
 
 
+Custom functions
+----------------
+
+Besides the built-in ``NUMBER`` and ``DATETIME`` functions, you can register your
+own functions for use in translations, e.g. a ``PLATFORM()`` function used to
+pick a variant based on the current OS:
+
+    FluentValue platform() => FluentString('macos');
+    final bundle = FluentBundle('en-GB', functions: {'PLATFORM': platform});
+
+    bundle.addMessages('''
+    settings-menu-label = { PLATFORM() ->
+        [macos] Preferences
+       *[other] Settings
+    }
+    ''');
+
+A custom function receives its FTL positional and named arguments as plain
+Dart values (already unwrapped from ``FluentValue``, e.g. ``String``/``num``/
+``DateTime``), and must return a ``FluentValue`` (e.g. ``FluentString``,
+``FluentNumber``). Custom functions may also override the built-in ``NUMBER``
+and ``DATETIME`` functions by registering under those names.
+
 Known limitations and bugs
 --------------------------
 

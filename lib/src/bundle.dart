@@ -22,13 +22,20 @@ class FluentBundle {
   // Identifiers starting with a dash (-) define terms. Terms are private and
   // cannot be retrieved from FluentBundle.
   final Map<String, Message> terms = {};
+  // Additional functions available to translations as builtins, e.g. PLATFORM().
+  // May override NUMBER/DATETIME.
+  final Map<String, Function> _customFunctions;
   Map<String, Function> get functions => {
         'NUMBER': NUMBER,
         'DATETIME': DATETIME,
+        ..._customFunctions,
       };
 
   FluentBundle(this.locale,
-      {this.useIsolating = false, this.transform = identity});
+      {this.useIsolating = false,
+      this.transform = identity,
+      Map<String, Function> functions = const {}})
+      : _customFunctions = functions;
 
   // Add a translation resource to the bundle. Returns the list of errors
   // encountered, e.g. attempts to override an existing message or term.
